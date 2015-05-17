@@ -50,7 +50,8 @@ wb = WeightLimitedBootstrapSplit(w, n_iter=3, train_size=9, test_size=4)
 print(wb)
 print("POPULATION:", pop, "(weight=%s)" % w.sum())
 for tr, te in wb:
-    print("TRAIN:", pop[tr], "(weight=%s)" % w[tr].sum(), "TEST:", pop[te], "(weight=%s)" % w[te].sum())
+    print("TRAIN:", pop[tr], "(weight=%s)" % w[tr].sum(), "TEST:", pop[te], 
+            "(weight=%s)" % w[te].sum())
 ```
 
     WeightLimitedBootstrapSplit(13(18), n_iter=3, train_size=9, test_size=4, random_state=None)
@@ -69,7 +70,8 @@ w = np.random.randint(low=2, high=5, size=len(pop))
 wb = WeightLimitedBootstrapSplit(w, n_iter=3, train_size=0.8, test_size=1)
 print(wb)
 for tr_idx, te_idx in wb:
-    print("TRAIN:", tr_idx, "(%s)" % w[tr_idx].sum(), "TEST:", te_idx, "(%s)" % w[te_idx].sum())
+    print("TRAIN:", tr_idx, "(%s)" % w[tr_idx].sum(), "TEST:", te_idx, 
+            "(%s)" % w[te_idx].sum())
 ```
 
     WeightLimitedBootstrapSplit(13(38), n_iter=3, train_size=31, test_size=1, random_state=None)
