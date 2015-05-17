@@ -10,22 +10,10 @@
 ```python
 from bootstrapsplit import BootstrapSplit
 bs = BootstrapSplit(9, random_state=0)
-len(bs)
-```
-
-    >3
-
-```python
 print(bs)
-```
-
-    >BootstrapSplit(9, n_iter=3, train_size=5, test_size=4, random_state=0)
-
-```python
 for train_index, test_index in bs:
     print("TRAIN:", train_index, "TEST:", test_index)
 ```
-
     >BootstrapSplit(9, n_iter=3, train_size=5, test_size=4, random_state=0)
     >('TRAIN:', array([1, 8, 7, 7, 8]), 'TEST:', array([0, 3, 0, 5]))
     >('TRAIN:', array([5, 4, 2, 4, 2]), 'TEST:', array([6, 7, 1, 0]))
