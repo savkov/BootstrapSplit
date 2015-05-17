@@ -7,19 +7,22 @@
 > Bootstrapping allows assigning measures of accuracy (defined in terms of bias, variance, confidence intervals, prediction error or some other such measure) to sample estimates. -- [Effron & Tibshirani, (1993)](https://books.google.co.uk/books/about/An_Introduction_to_the_Bootstrap.html?id=gLlpIUxRntoC&hl=en "An Introduction to the Bootstrap")
 
 
-```from bootstrapsplit import BootstrapSplit
+```python
+from bootstrapsplit import BootstrapSplit
 bs = BootstrapSplit(9, random_state=0)
 len(bs)
 ```
 
     3
 
-```print(bs)
+```python
+print(bs)
 ```
 
     BootstrapSplit(9, n_iter=3, train_size=5, test_size=4, random_state=0)
 
-```for train_index, test_index in bs:
+```python
+for train_index, test_index in bs:
     print("TRAIN:", train_index, "TEST:", test_index)
 ```
 
@@ -37,7 +40,8 @@ Bootstrapping of weighted samples performs bootstrapping in distributions where 
 
 The `BootstrapSplitWeighted` class re-implements the `BootstrapSplit` accounting for individual sample weight. In contrast to `BootstrapSplitWeighted` though it only sets a maximum weight for each sample split, which means that the returned sample is of the closest lower weight given a random resampling with replacement. This introduces a small degree of inaccuracy that needs to be taken in mind when working with very small samples.
 
-```import numpy as np
+```python
+import numpy as np
 from bootstrapsplit import BootstrapSplitWeighted
 x = np.random.randint(low=1, high=10, size=20)
 bo = BootstrapSplitWeighted(x, n_iter=3, train_size=0.8, test_size=0.2)
@@ -53,7 +57,8 @@ for traini, testi in bo:
 
 If the weight of a sample split is smaller than that of the first token in the resampled sequence, an empty list is returned.
 
-```x = np.random.randint(low=1, high=10, size=3)
+```python
+x = np.random.randint(low=1, high=10, size=3)
 bo = BootstrapSplitWeighted(x, n_iter=3, train_size=0.8, test_size=0.2)
 print bo
 for traini, testi in bo:
