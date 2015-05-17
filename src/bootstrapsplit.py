@@ -27,13 +27,164 @@
 __author__ = 'Aleksandar Savkov'
 
 import numbers
+import warnings
 import numpy as np
 
 from math import ceil, floor
 from sklearn.utils import check_random_state
 
 
-class BootstrapSplitWeighted(object):
+class Bootstrap(object):
+    """Random sampling with replacement iterator. Each iteration provides a new
+    set of indices drawn with replacement from the population. Note that
+    contrary to other resampling strategies, bootstrapping will allow some
+    observations to occur several times in each resample.
+
+    Parameters
+    ----------
+    weights : array-like
+        List of sample weights.
+    n_iter : int (default is 3)
+        Number of bootstrapping iterations
+    random_state : int or RandomState
+        Pseudo number generator state used for random sampling.
+
+    Examples
+    --------
+    >>>from bootstrapsplit import Bootstrap
+    >>>pop = np.array(list('ABDEFGHIJKL'))
+    >>>b = Bootstrap(13, n_iter=3)
+    >>>print(b)
+    Bootstrap(13, n_iter=3, random_state=None)
+    >>>print("POPULATION:", pop)
+    POPULATION: ['A' 'B' 'D' 'E' 'F' 'G' 'H' 'I' 'J' 'K' 'L' 'M' 'N']
+    >>>for s in b:
+    >>>    print("BOOTSTRAP:", pop[s])
+    BOOTSTRAP: ['D' 'N' 'G' 'L' 'G' 'D' 'I' 'D' 'K' 'I' 'D' 'M' 'K']
+    BOOTSTRAP: ['N' 'H' 'A' 'E' 'B' 'H' 'M' 'B' 'K' 'N' 'N' 'M' 'K']
+    BOOTSTRAP: ['G' 'N' 'G' 'L' 'M' 'N' 'I' 'N' 'D' 'M' 'H' 'I' 'G']
+    """
+    def __init__(self, n, n_iter=3, random_state=None):
+        self.n = n
+        self.n_iter = n_iter
+        self.random_state = random_state
+
+    def __iter__(self):
+        rng = check_random_state(self.random_state)
+        for i in range(self.n_iter):
+            # sample indexes
+            sample_idxs = np.arange(self.n)
+
+            # indexes sampled with replacement
+            bootstrap_idxs = rng.randint(0, self.n, self.n)
+            yield sample_idxs[bootstrap_idxs]
+
+    def __repr__(self):
+        return ('%s(%d, n_iter=%d, random_state=%s)' % (
+                    self.__class__.__name__,
+                    self.n,
+                    self.n_iter,
+                    self.random_state,
+                ))
+
+    def __len__(self):
+        return self.n_iter
+
+
+class WeightLimitedBootstrap(object):
+    """Random sampling with replacement iterator for a population of
+    observation weights. Each iteration provides a new set of indices drawn
+    with replacement from the population. The sample sizes are measured by the
+    aggregate weight of the observations and NOT by their number. The size of
+    the samples can be limited to a certain weight, by default this is the
+    total weight of the population. Note that contrary to other resampling
+    strategies, bootstrapping will allow some observations to occur several
+    times in each resample, which will result in varying total weight in each
+    resample if sample size is measured in number of observations.
+
+    Parameters
+    ----------
+    weights : array-like
+        List of sample weights.
+    n_iter : int (default is 3)
+        Number of bootstrapping iterations
+    max_weight : int or float (default is 0.5)
+        If int, maximum number of observations to include in the training
+        split (should be less or equal to the size of the population).
+        If float, should be between 0.0 and 1.0 and represent the
+        proportion of the population to include in the resampled dataset.
+    random_state : int or RandomState
+        Pseudo number generator state used for random sampling.
+
+    Examples
+    --------
+    >>>from bootstrapsplit import WeightLimitedBootstrap
+    >>>pop = np.array(list('ABDEFGHIJKL'))
+    >>>w = np.random.randint(low=1, high=5, size=len(pop))
+    >>>wb = WeightLimitedBootstrap(w, n_iter=3, max_weight=len(pop) - 2)
+    >>>print(wb)
+    3
+    >>>print("POPULATION:", pop, "(weight=%s)" % w.sum())
+    POPULATION: ['A' 'B' 'D' 'E' 'F' 'G' 'H' 'I' 'J' 'K' 'L'](weight=31)
+    >>>for s in wb:
+    >>>    print("BOOTSTRAP:", pop[s], "(weight=%s)" % w[s].sum())
+    BOOTSTRAP: ['C' 'G' 'F'] (weight=9)
+    BOOTSTRAP: ['A' 'B' 'A' 'C' 'A'] (weight=10)
+    BOOTSTRAP: ['I' 'D' 'H' 'F'] (weight=11)
+    """
+
+    def __init__(self, weights, n_iter=3, max_weight=1.0, random_state=None):
+        self.n = len(weights)
+        self.weights = np.array(weights)
+        self.total_weight = int(self.weights.sum())
+        self.n_iter = n_iter
+        if isinstance(max_weight, numbers.Integral):
+            self.limit = max_weight
+            if max_weight in [0, 1]:
+                warnings.warn('Limit set to %s not %r. This is '
+                              'probably not what you intended.'
+                              % (max_weight, float(max_weight)))
+        elif (isinstance(max_weight, numbers.Real) and max_weight >= 0.0
+                and max_weight <= 1.0):
+            self.limit = int(ceil(max_weight * self.total_weight))
+        else:
+            raise ValueError("Invalid value for limit: %r" %
+                             max_weight)
+        if self.limit > self.total_weight:
+            raise ValueError("limit=%d should not be larger than "
+                             "the total_weight=%d" %
+                             (self.limit, self.total_weight))
+        self.random_state = random_state
+
+    def __iter__(self):
+        rng = check_random_state(self.random_state)
+        for i in range(self.n_iter):
+            # sample indexes
+            sample_idxs = np.arange(self.n)
+
+            # indexes sampled with replacement
+            bootstrap_idxs = rng.randint(0, self.n, self.n)
+            yield sample_idxs[self._sub_item_slice(
+                sample_idxs[bootstrap_idxs], max_weight=self.limit)]
+
+    def _sub_item_slice(self, permutation, min_weight=0, max_weight=None):
+        return _sub_item_slice(self.weights, permutation, min_weight,
+                               max_weight)
+
+    def __repr__(self):
+        return ('%s(%d, n_iter=%d, limit=%d random_state=%s)' % (
+                    self.__class__.__name__,
+                    self.n,
+                    self.n_iter,
+                    self.limit,
+                    self.random_state,
+                ))
+
+    def __len__(self):
+        return self.n_iter
+
+
+class WeightLimitedBootstrapSplit(object):
     """Random sampling with replacement split iterator for a sample of
     sequences of uneven size. Provides train/test indices to split data in
     train test sets while resampling the input n_iter times: each time a new
@@ -45,8 +196,10 @@ class BootstrapSplitWeighted(object):
     will allow some sample sequences to occur several times in each split.
     However, a sample that occurs in the train split will never occur in the
     test split and vice-versa.
+
     Note: sequence bootstrapping corrects sample size deviations when
     re-sampling a dataset of uneven-sized sequences, e.g. sentences.
+
     Parameters
     ----------
     weights : array-like
@@ -68,12 +221,13 @@ class BootstrapSplitWeighted(object):
         If None, n_test is set as the complement of n_train.
     random_state : int or RandomState
         Pseudo number generator state used for random sampling.
+
     Examples
     --------
     >>> import numpy as np
-    >>> from bootstrapsplit import BootstrapSplitWeighted
+    >>> from bootstrapsplit import WeightLimitedBootstrapSplit
     >>> x = np.random.randint(1, 10, 20)
-    >>> bs = BootstrapSplitWeighted(x, random_state=0)
+    >>> bs = WeightLimitedBootstrapSplit(x, random_state=0)
     >>> len(bs)
     3
     >>> print(bs)
@@ -90,50 +244,49 @@ class BootstrapSplitWeighted(object):
                  random_state=None):
         self.n = len(weights)
         self.weights = np.array(weights)
-        self.l_seq = int(np.sum(weights))
+        self.total_weight = int(np.sum(weights))
         self.n_iter = n_iter
         if isinstance(train_size, numbers.Integral):
             self.train_size = train_size
+            if train_size in [0, 1]:
+                warnings.warn('Training set size set to %s not %s. This is '
+                              'probably not what you intended.'
+                              %(train_size, float(train_size)))
         elif (isinstance(train_size, numbers.Real) and train_size >= 0.0
                 and train_size <= 1.0):
-            self.train_size = int(ceil(train_size * self.l_seq))
+            self.train_size = int(ceil(train_size * self.total_weight))
         else:
             raise ValueError("Invalid value for train_size: %r" %
                              train_size)
-        if self.train_size > self.l_seq:
+        if self.train_size > self.total_weight:
             raise ValueError("train_size=%d should not be larger than "
                              "the cumulative sum of subsequences l_seq=%d" %
                              (self.train_size, self.n))
 
         if isinstance(test_size, numbers.Integral):
             self.test_size = test_size
+            if train_size in [0, 1]:
+                warnings.warn('Testing set size set to %s not %s. This is '
+                              'probably not what you intended.'
+                              % (test_size, float(test_size)))
         elif isinstance(test_size, numbers.Real) and 0.0 <= test_size <= 1.0:
-            self.test_size = int(floor(test_size * self.l_seq))
+            self.test_size = int(floor(test_size * self.total_weight))
         elif test_size is None:
-            self.test_size = self.l_seq - self.train_size
+            self.test_size = self.total_weight - self.train_size
         else:
             raise ValueError("Invalid value for test_size: %r" % test_size)
-        if self.test_size > self.l_seq - self.train_size:
+        if self.test_size > self.total_weight - self.train_size:
             raise ValueError(("test_size + train_size=%d, should not be " +
                               "larger than the cumulative sum of " +
                               "subsequences l_seq=%d") %
-                             (self.test_size + self.train_size, self.l_seq))
+                             (self.test_size + self.train_size,
+                              self.total_weight))
 
         self.random_state = random_state
 
     def _sub_item_slice(self, permutation, min_weight=0, max_weight=None):
-        """ Returns a slice of the weights sequence based on a permutation
-        with weight restrictions.
-
-        :param permutation: index permutation of the original weights sequence
-        :param min_weight: minimum weight
-        :param max_weight: maximum weight
-        :return: weight-restricted slice of permutation
-        """
-        min = min_weight
-        max = np.sum(self.weights) if max_weight is None else max_weight
-        cs = np.cumsum(self.weights[permutation])
-        return permutation[(cs > min) & (cs <= max)]
+        return _sub_item_slice(self.weights, permutation, min_weight,
+                               max_weight)
 
     def __iter__(self):
         rng = check_random_state(self.random_state)
@@ -174,7 +327,7 @@ class BootstrapSplitWeighted(object):
                 'random_state=%s)' % (
                     self.__class__.__name__,
                     self.n,
-                    self.l_seq,
+                    self.total_weight,
                     self.n_iter,
                     self.train_size,
                     self.test_size,
@@ -183,6 +336,31 @@ class BootstrapSplitWeighted(object):
 
     def __len__(self):
         return self.n_iter
+
+
+def _sub_item_slice(weights, permutation, min_weight=0, max_weight=None):
+        """ Returns a slice of the weights sequence based on a permutation
+        with weight restrictions.
+
+        Parameters
+        ----------
+        permutation : array-like
+        Index permutation of the original weights sequence.
+        min_weight : int or float
+        minimum weight
+        max_weight : int or float
+        maximum weight
+
+        Returns
+        -------
+        slice : array-like
+        Weight-limited slice of permutation
+        """
+        mnw = min_weight
+        mxw = np.sum(weights) if max_weight is None else max_weight
+        cs = np.cumsum(weights[permutation])
+        slice = permutation[(cs > mnw) & (cs <= mxw)]
+        return slice
 
 
 # The following part of this module was taken from scikit learn before its
@@ -285,10 +463,14 @@ class BootstrapSplit(object):
                                    + self.test_size]
 
             # bootstrap in each split individually
-            train = rng.randint(0, self.train_size,
-                                size=(self.train_size,))
-            test = rng.randint(0, self.test_size,
-                               size=(self.test_size,))
+            train = []
+            test = []
+            if self.train_size:
+                train = rng.randint(0, self.train_size,
+                                    size=(self.train_size,))
+            if self.test_size:
+                test = rng.randint(0, self.test_size,
+                                   size=(self.test_size,))
             yield ind_train[train], ind_test[test]
 
     def __repr__(self):
