@@ -9,16 +9,19 @@
 
 ```from bootstrapsplit import BootstrapSplit
 bs = BootstrapSplit(9, random_state=0)
-len(bs)```
+len(bs)
+```
 
     3
 
-```print(bs)```
+```print(bs)
+```
 
     BootstrapSplit(9, n_iter=3, train_size=5, test_size=4, random_state=0)
 
 ```for train_index, test_index in bs:
-    print("TRAIN:", train_index, "TEST:", test_index)```
+    print("TRAIN:", train_index, "TEST:", test_index)
+```
 
     BootstrapSplit(9, n_iter=3, train_size=5, test_size=4, random_state=0)
     ('TRAIN:', array([1, 8, 7, 7, 8]), 'TEST:', array([0, 3, 0, 5]))
@@ -40,7 +43,8 @@ x = np.random.randint(low=1, high=10, size=20)
 bo = BootstrapSplitWeighted(x, n_iter=3, train_size=0.8, test_size=0.2)
 print bo
 for traini, testi in bo:
-    print "TRAIN:", traini, "(%s)" % np.sum(x[traini]), "TEST:", testi, "(%s)" % np.sum(x[testi])```
+    print "TRAIN:", traini, "(%s)" % np.sum(x[traini]), "TEST:", testi, "(%s)" % np.sum(x[testi])
+```
 
     BootstrapSplitWeighted(20(106), n_iter=3, train_size=85, test_size=21, random_state=None)
     TRAIN: [12  8  4  0 15 15 11  2  4  4 19 13  0 16 12 15] (80) TEST: [5 3] (11)
@@ -53,7 +57,8 @@ If the weight of a sample split is smaller than that of the first token in the r
 bo = BootstrapSplitWeighted(x, n_iter=3, train_size=0.8, test_size=0.2)
 print bo
 for traini, testi in bo:
-    print "TRAIN:", traini, "(%s)" % np.sum(x[traini]), "TEST:", testi, "(%s)" % np.sum(x[testi])```
+    print "TRAIN:", traini, "(%s)" % np.sum(x[traini]), "TEST:", testi, "(%s)" % np.sum(x[testi])
+```
 
     BootstrapSplitWeighted(3(15), n_iter=3, train_size=12, test_size=3, random_state=None)
     TRAIN: [1] (8) TEST: [] (0)
