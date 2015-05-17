@@ -1,4 +1,6 @@
-# Bootstrapping
+## BootstrapSplit
+
+BootstrapSplit is a library for classic and weight-limited bootstrap resampling.
 
 ### What is bootstrapping?
 > Bootstrapping is the practice of estimating properties of an estimator (such as its variance) by measuring those properties when sampling from an approximating distribution. One standard choice for an approximating distribution is the empirical distribution function of the observed data. In the case where a set of observations can be assumed to be from an independent and identically distributed population, this can be implemented by constructing a number of resamples with replacement, of the observed dataset (and of equal size to the observed datasert [population]). -- [Wikipedia](http://en.wikipedia.org/wiki/Bootstrapping_%28statistics%29 "Bootstrapping (Statistics)")
