@@ -13,23 +13,23 @@ bs = BootstrapSplit(9, random_state=0)
 len(bs)
 ```
 
-    3
+    >3
 
 ```python
 print(bs)
 ```
 
-    BootstrapSplit(9, n_iter=3, train_size=5, test_size=4, random_state=0)
+    >BootstrapSplit(9, n_iter=3, train_size=5, test_size=4, random_state=0)
 
 ```python
 for train_index, test_index in bs:
     print("TRAIN:", train_index, "TEST:", test_index)
 ```
 
-    BootstrapSplit(9, n_iter=3, train_size=5, test_size=4, random_state=0)
-    ('TRAIN:', array([1, 8, 7, 7, 8]), 'TEST:', array([0, 3, 0, 5]))
-    ('TRAIN:', array([5, 4, 2, 4, 2]), 'TEST:', array([6, 7, 1, 0]))
-    ('TRAIN:', array([4, 7, 0, 1, 1]), 'TEST:', array([5, 3, 6, 5]))
+    >BootstrapSplit(9, n_iter=3, train_size=5, test_size=4, random_state=0)
+    >('TRAIN:', array([1, 8, 7, 7, 8]), 'TEST:', array([0, 3, 0, 5]))
+    >('TRAIN:', array([5, 4, 2, 4, 2]), 'TEST:', array([6, 7, 1, 0]))
+    >('TRAIN:', array([4, 7, 0, 1, 1]), 'TEST:', array([5, 3, 6, 5]))
 
 
 ### Bootstrap of Weighted Samples
@@ -50,10 +50,10 @@ for train, test in bo:
     print "TRAIN:", train, "(%s)" % np.sum(x[train]), "TEST:", test, "(%s)" % np.sum(x[test])
 ```
 
-    BootstrapSplitWeighted(20(106), n_iter=3, train_size=85, test_size=21, random_state=None)
-    TRAIN: [12  8  4  0 15 15 11  2  4  4 19 13  0 16 12 15] (80) TEST: [5 3] (11)
-    TRAIN: [ 3  2  4  8  5 12  8  2  5  4  5  3  2] (78) TEST: [16  1 16  1 15 15] (16)
-    TRAIN: [11 13 11 17  2 16  2 13  5  6 18 14 15  7] (82) TEST: [ 0  0 19] (19)
+    >BootstrapSplitWeighted(20(106), n_iter=3, train_size=85, test_size=21, random_state=None)
+    >TRAIN: [12  8  4  0 15 15 11  2  4  4 19 13  0 16 12 15] (80) TEST: [5 3] (11)
+    >TRAIN: [ 3  2  4  8  5 12  8  2  5  4  5  3  2] (78) TEST: [16  1 16  1 15 15] (16)
+    >TRAIN: [11 13 11 17  2 16  2 13  5  6 18 14 15  7] (82) TEST: [ 0  0 19] (19)
 
 If the weight of a sample split is smaller than that of the first token in the resampled sequence, an empty list is returned.
 
@@ -65,9 +65,9 @@ for train, test in bo:
     print "TRAIN:", train, "(%s)" % np.sum(x[train]), "TEST:", test, "(%s)" % np.sum(x[test])
 ```
 
-    BootstrapSplitWeighted(3(15), n_iter=3, train_size=12, test_size=3, random_state=None)
-    TRAIN: [1] (8) TEST: [] (0)
-    TRAIN: [] (0) TEST: [] (0)
-    TRAIN: [] (0) TEST: [] (0)
+    >BootstrapSplitWeighted(3(15), n_iter=3, train_size=12, test_size=3, random_state=None)
+    >TRAIN: [1] (8) TEST: [] (0)
+    >TRAIN: [] (0) TEST: [] (0)
+    >TRAIN: [] (0) TEST: [] (0)
 
 
