@@ -123,7 +123,7 @@ for s in wb:
     BOOTSTRAP: ['B' 'G' 'D' 'N' 'E'] (weight=8)
 
 
-##See Also
+## See Also
 * [jackknife resampling](http://en.wikipedia.org/wiki/Jackknife_resampling "Jackknife resampling")
 * [randomisation tests](https://www.uvm.edu/~dhowell/StatPages/Resampling/RandomizationTests.html "Randomisation tests")
 * [exact tests](http://en.wikipedia.org/wiki/Exact_test "Exact tests")
